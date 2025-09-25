@@ -26,5 +26,5 @@ jobs:
           # Estas variables de entorno se definen en los "secrets" de GitHub
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "evaluaciondevops"  
-          heroku_email: "mj423627@gmail.com" 
+          heroku_email: "HEROKU_EMAIL" 
           
