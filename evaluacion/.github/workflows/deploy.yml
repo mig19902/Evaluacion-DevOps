@@ -1,0 +1,30 @@
+# Nombre del flujo de trabajo
+name: Deploy to Heroku
+
+# Define en qué eventos se ejecutará este flujo de trabajo
+on:
+  push:
+    branches:
+      - main  # Se ejecutará cada vez que haya un 'push' a la rama 'main'
+
+# Los 'jobs' son los pasos que se ejecutan en el flujo de trabajo
+jobs:
+  build:
+    # Sistema operativo donde se ejecutará el 'job'
+    runs-on: ubuntu-latest
+
+    # Los pasos que se ejecutarán en el 'job'
+    steps:
+      # Paso 1: Obtiene el código de tu repositorio
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Paso 2: Despliega en Heroku
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12 # Utiliza la acción de despliegue de Heroku
+        with:
+          # Estas variables de entorno se definen en los "secrets" de GitHub
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "evaluaciondevops"  
+          heroku_email: "mj423627@gmail.com" 
+          
