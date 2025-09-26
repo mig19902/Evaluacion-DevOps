@@ -24,37 +24,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # *** RUTA DE CACHÉ CORREGIDA: Apunta directamente a 'node_modules' ***
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules # La carpeta node_modules está ahora en la raíz
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} 
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       # === Zona de INTEGRACIÓN CONTINUA (CI) ===
       # Esta sección se ejecuta SIEMPRE (en push y pull_request)
       - name: Set up Node.js 16.x
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x' # Puedes cambiar la versión de Node.js aquí
-          cache: 'npm' # Habilita la caché para instalaciones rápidas
+          node-version: '16.x'
       
-      # *** CAMBIO CRÍTICO AQUÍ: Establecer el directorio de trabajo ***
+      # *** CORREGIDO: Ejecuta 'npm ci' en la raíz (ya no necesita working-directory) ***
       - name: Install dependencies (npm ci)
         run: npm ci
-        working-directory: ./evaluacion # Indica a GitHub que ejecute 'npm ci' dentro de la carpeta 'evaluacion'
 
-      # *** CAMBIO CRÍTICO AQUÍ: Establecer el directorio de trabajo ***
+      # *** CORREGIDO: Ejecuta 'npm test' en la raíz ***
       - name: Run Tests (Opcional, pero recomendado)
-        # Si tienes scripts de prueba en package.json (ej: "test": "jest"), se ejecutan aquí.
-        # Si esta etapa falla, el workflow se detiene y NO despliega.
-        run: npm test # Si no tienes pruebas, puedes comentar o borrar esta línea.
-        working-directory: ./evaluacion # Indica a GitHub que ejecute 'npm test' dentro de la carpeta 'evaluacion'
+        run: npm test
 
       # === Zona de DESPLIEGUE CONTINUO (CD) ===
       # Paso 2: Despliega en Heroku
-      # La condición 'if: github.event_name == 'push'' asegura que SÓLO se despliega
-      # cuando el código ya ha pasado las pruebas y se ha hecho 'push' a la rama principal.
       - name: Deploy to Heroku
         if: github.event_name == 'push'
         uses: akhileshns/heroku-deploy@v3.12.12 # Utiliza la acción de despliegue de Heroku
         with:
-          # IMPORTANTÍSIMO: Debemos decirle a Heroku dónde está el código fuente.
-          appdir: "evaluacion" 
+          # *** ELIMINADO: appdir ya no es necesario, el código está en la raíz ***
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "evaluaciondevops"  # Reemplaza con el nombre de tu app en Heroku
-          heroku_email: ${{ secrets.HEROKU_EMAIL }} # Ahora usa un "secret" para tu email
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
           
