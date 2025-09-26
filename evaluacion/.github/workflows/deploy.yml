@@ -1,11 +1,17 @@
 # Nombre del flujo de trabajo
-name: Deploy to Heroku
+name: Deploy and Test
 
 # Define en qué eventos se ejecutará este flujo de trabajo
 on:
+  # 1. Se ejecuta para el Despliegue Final (en la rama principal)
   push:
     branches:
-      - main  # Se ejecutará cada vez que haya un 'push' a la rama 'main'
+      - main  # Despliega automáticamente en Heroku cuando se fusiona a 'main'
+
+  # 2. Se ejecuta para la Integración Continua (cuando se abre o actualiza un PR)
+  pull_request:
+    branches:
+      - main  # Ejecuta las pruebas antes de permitir la fusión
 
 # Los 'jobs' son los pasos que se ejecutan en el flujo de trabajo
 jobs:
@@ -13,18 +19,27 @@ jobs:
     # Sistema operativo donde se ejecutará el 'job'
     runs-on: ubuntu-latest
 
-    # Los pasos que se ejecutarán en el 'job'
+    # Definimos las condiciones:
+    # Si es un 'push' a 'main', el 'job' es de despliegue.
+    # Si es un 'pull_request', el 'job' es de prueba (no despliega).
     steps:
       # Paso 1: Obtiene el código de tu repositorio
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # === Zona de INTEGRACIÓN/PRUEBAS (Se ejecuta siempre, PERO no despliega) ===
+      # Si quieres añadir pruebas, se harían aquí antes del paso de despliegue.
+      # Por ejemplo: - run: npm install && npm test
+
       # Paso 2: Despliega en Heroku
+      # La condición 'if: github.event_name == 'push'' asegura que SÓLO se despliega
+      # cuando el evento es un 'push' (es decir, cuando ya se ha fusionado en main).
       - name: Deploy to Heroku
+        if: github.event_name == 'push'
         uses: akhileshns/heroku-deploy@v3.12.12 # Utiliza la acción de despliegue de Heroku
         with:
           # Estas variables de entorno se definen en los "secrets" de GitHub
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "evaluaciondevops"  
-          heroku_email: "HEROKU_EMAIL" 
+          heroku_app_name: "evaluaciondevops"  # Reemplaza con el nombre de tu app en Heroku
+          heroku_email: ${{ secrets.HEROKU_EMAIL }} # Ahora usa un "secret" para tu email
           
