@@ -44,15 +44,19 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci
 
-      # NOTA: El paso "Run Tests" ha sido eliminado para evitar el fallo por defecto.
-
       # === Zona de DESPLIEGUE CONTINUO (CD) ===
+      
+      # *** CORRECCIÓN CRÍTICA: Instala la Heroku CLI para evitar el error "heroku: not found" ***
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+
       # Paso 2: Despliega en Heroku
       - name: Deploy to Heroku
         if: github.event_name == 'push'
         uses: akhileshns/heroku-deploy@v3.12.12 # Utiliza la acción de despliegue de Heroku
         with:
-          # Ya no usamos appdir porque el código está en la raíz del repositorio.
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "evaluaciondevops"  # Asegúrate de que este sea el nombre EXACTO de tu app en Heroku
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          
