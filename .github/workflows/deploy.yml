@@ -22,7 +22,7 @@ jobs:
     steps:
       # Paso 1: Obtiene el código de tu repositorio
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # === Zona de INTEGRACIÓN CONTINUA (CI) ===
       # Esta sección se ejecuta SIEMPRE (en push y pull_request)
@@ -31,14 +31,18 @@ jobs:
         with:
           node-version: '16.x' # Puedes cambiar la versión de Node.js aquí
           cache: 'npm' # Habilita la caché para instalaciones rápidas
-          
+      
+      # *** CAMBIO CRÍTICO AQUÍ: Establecer el directorio de trabajo ***
       - name: Install dependencies (npm ci)
         run: npm ci
+        working-directory: ./evaluacion # Indica a GitHub que ejecute 'npm ci' dentro de la carpeta 'evaluacion'
 
+      # *** CAMBIO CRÍTICO AQUÍ: Establecer el directorio de trabajo ***
       - name: Run Tests (Opcional, pero recomendado)
         # Si tienes scripts de prueba en package.json (ej: "test": "jest"), se ejecutan aquí.
         # Si esta etapa falla, el workflow se detiene y NO despliega.
         run: npm test # Si no tienes pruebas, puedes comentar o borrar esta línea.
+        working-directory: ./evaluacion # Indica a GitHub que ejecute 'npm test' dentro de la carpeta 'evaluacion'
 
       # === Zona de DESPLIEGUE CONTINUO (CD) ===
       # Paso 2: Despliega en Heroku
@@ -48,7 +52,8 @@ jobs:
         if: github.event_name == 'push'
         uses: akhileshns/heroku-deploy@v3.12.12 # Utiliza la acción de despliegue de Heroku
         with:
-          # Estas variables de entorno se definen en los "secrets" de GitHub
+          # IMPORTANTÍSIMO: Debemos decirle a Heroku dónde está el código fuente.
+          appdir: "evaluacion" 
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "evaluaciondevops"  # Reemplaza con el nombre de tu app en Heroku
           heroku_email: ${{ secrets.HEROKU_EMAIL }} # Ahora usa un "secret" para tu email
