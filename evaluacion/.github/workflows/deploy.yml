@@ -19,21 +19,31 @@ jobs:
     # Sistema operativo donde se ejecutará el 'job'
     runs-on: ubuntu-latest
 
-    # Definimos las condiciones:
-    # Si es un 'push' a 'main', el 'job' es de despliegue.
-    # Si es un 'pull_request', el 'job' es de prueba (no despliega).
     steps:
       # Paso 1: Obtiene el código de tu repositorio
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # === Zona de INTEGRACIÓN/PRUEBAS (Se ejecuta siempre, PERO no despliega) ===
-      # Si quieres añadir pruebas, se harían aquí antes del paso de despliegue.
-      # Por ejemplo: - run: npm install && npm test
+      # === Zona de INTEGRACIÓN CONTINUA (CI) ===
+      # Esta sección se ejecuta SIEMPRE (en push y pull_request)
+      - name: Set up Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x' # Puedes cambiar la versión de Node.js aquí
+          cache: 'npm' # Habilita la caché para instalaciones rápidas
+          
+      - name: Install dependencies (npm ci)
+        run: npm ci
 
+      - name: Run Tests (Opcional, pero recomendado)
+        # Si tienes scripts de prueba en package.json (ej: "test": "jest"), se ejecutan aquí.
+        # Si esta etapa falla, el workflow se detiene y NO despliega.
+        run: npm test # Si no tienes pruebas, puedes comentar o borrar esta línea.
+
+      # === Zona de DESPLIEGUE CONTINUO (CD) ===
       # Paso 2: Despliega en Heroku
       # La condición 'if: github.event_name == 'push'' asegura que SÓLO se despliega
-      # cuando el evento es un 'push' (es decir, cuando ya se ha fusionado en main).
+      # cuando el código ya ha pasado las pruebas y se ha hecho 'push' a la rama principal.
       - name: Deploy to Heroku
         if: github.event_name == 'push'
         uses: akhileshns/heroku-deploy@v3.12.12 # Utiliza la acción de despliegue de Heroku
