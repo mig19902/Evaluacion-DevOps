@@ -6,8 +6,8 @@ const app = express();
 const path = require('path');
 
 
-  //// El puerto que más tarde modificaremos //
-const port = 3000;  
+  //// El puerto que más tarde modificaremos // 
+const port = process.env.PORT || 3000;  
 
 // Middleware para servir archivos estáticos en este caso HTML desde la carpeta public
 app.use(express.static('public')); // Ya de por sí sirve los archivos estáticos en la carpeta public
